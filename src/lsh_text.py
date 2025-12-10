@@ -1,4 +1,3 @@
-# improved_lsh_text.py (drop-in replacement)
 from __future__ import annotations
 from typing import List, Set, Sequence, Dict, Tuple, Iterable, Optional
 import hashlib
@@ -28,14 +27,14 @@ class MinHashLSH:
         self.fallback_all = fallback_all
 
         self._rand = random.Random(seed)
-        # use a large prime > 2^64 for modulo (we'll keep arithmetic in Python ints)
-        self._prime = 18446744073709551557  # a large 64-bit prime
+        #xrisimopoioume 64-bit proto arithmo
+        self._prime = 18446744073709551557
 
         self._hash_params = self._generate_hash_params(num_perm)
 
         self.doc_sets: List[Set[str]] = []
         self.signatures: List[List[int]] = []
-        # bucket key: (band_index, tuple_of_ints)
+        #bucket key: (band_index, tuple_of_ints)
         self.buckets: Dict[Tuple[int, Tuple[int, ...]], List[int]] = {}
 
     def _generate_hash_params(self, k: int):
@@ -57,7 +56,7 @@ class MinHashLSH:
 
     def _minhash_signature(self, s: Iterable[str]) -> List[int]:
         """Compute MinHash signature for a set/iterable of tokens."""
-        # if s is empty, return a high sentinel signature
+        #an s einai adeio tote epistrefei high sentinel ipografi
         if not s:
             return [self._prime] * self.num_perm
 
@@ -82,7 +81,7 @@ class MinHashLSH:
             sig = self._minhash_signature(s)
             self.signatures.append(sig)
 
-            # LSH banding: use tuple of ints as key (deterministic)
+            #LSH banding pou xrisimopoioume ints gia keys
             for band in range(self.num_bands):
                 start = band * self.rows_per_band
                 end = start + self.rows_per_band
@@ -116,7 +115,7 @@ class MinHashLSH:
             else:
                 return []
 
-        # Re-rank by exact Jaccard similarity
+        #rerank me jaccard similarity
         scored = []
         for doc_id in candidates:
             sim = self.jaccard(s, self.doc_sets[doc_id])
@@ -134,3 +133,4 @@ class MinHashLSH:
         if union == 0:
             return 0.0
         return inter / union
+
