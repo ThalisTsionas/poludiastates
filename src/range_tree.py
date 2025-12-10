@@ -7,8 +7,8 @@ from typing import Optional, List, Sequence, Tuple
 class RangeNode:
     """Κόμβος ενός 1D range tree (balanced binary search tree)."""
 
-    value: float               # η τιμή στον 1D άξονα (π.χ. release_year)
-    index: int                 # index του σημείου στο αρχικό array
+    value: float               #to value ston 1d axis
+    index: int                 #index sto arxiko array
     left: Optional["RangeNode"] = None
     right: Optional["RangeNode"] = None
 
@@ -30,7 +30,7 @@ class RangeTree:
         if self.n_points == 0:
             self.root = None
         else:
-            # Δημιουργούμε λίστα από (value, index) και τη φτιάχνουμε σε balanced BST.
+            #ftiaxnoume lista apo value,index kai tin ftiaxnoume se balanced BST
             pairs: List[Tuple[float, int]] = [(float(v), i) for i, v in enumerate(values)]
             pairs.sort(key=lambda p: p[0])  # ταξινόμηση κατά value
             self.root = self._build(pairs)
@@ -57,7 +57,6 @@ class RangeTree:
         """Επιστρέφει πόσα points έχουν γίνει index."""
         return self.n_points
 
-    # ---------- RANGE QUERY ----------
 
     def range_query(self, low: float, high: float) -> List[int]:
         """
@@ -80,14 +79,15 @@ class RangeTree:
         if node is None:
             return
 
-        # Αν η τιμή του node είναι μέσα στο [low, high], προσθέτουμε τον index
+        #an i timi einai mesa sto range to prosthetoume to index
         if low <= node.value <= high:
             results.append(node.index)
 
-        # Αν low < node.value, μπορεί να υπάρχουν τιμές στο range στο αριστερό υποδέντρο
+        #an einai <low tote mporei na iparxoun times sto range sto aristera ipodentro
         if low < node.value:
             self._range_query_node(node.left, low, high, results)
 
-        # Αν node.value < high, μπορεί να υπάρχουν τιμές στο range στο δεξί υποδέντρο
+        #allios sto dexia
         if node.value < high:
             self._range_query_node(node.right, low, high, results)
+
