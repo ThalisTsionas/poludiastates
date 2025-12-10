@@ -14,18 +14,15 @@ from range_tree import RangeTree
 from r_tree import RTree
 from lsh_text import MinHashLSH
 
-# gia emas
-# pip install pandas
-# pip install ttkbootstrap
-# pip install openpyxl
-# Python: Select Interpreter me cntrl shift p
-# O(N_docs × num_perm × avg_tokens_per_doc)
+#gia emas
+#pip install pandas
+#pip install ttkbootstrap
+#pip install openpyxl
+#Python: Select Interpreter me cntrl shift p
+#O(N_docs × num_perm × avg_tokens_per_doc)
+#to lsh to kanoume me ta genres
 
-
-# ============================================================
-# 1. Query parameters (numeric + categorical)
-# ============================================================
-
+#query
 @dataclass
 class AssignmentQueryParams:
     """
@@ -44,10 +41,7 @@ class AssignmentQueryParams:
     language: str = "en"
 
 
-# ============================================================
-# 2. Parsing & data helpers
-# ============================================================
-
+#parsing ta dedomena
 def parse_origin_country(val):
     if pd.isna(val):
         return []
@@ -145,10 +139,7 @@ def apply_full_query_filters(df: pd.DataFrame, params: AssignmentQueryParams) ->
     return df[full_mask].copy()
 
 
-# ============================================================
-# 3. Build indexes + measure build time
-# ============================================================
-
+#measure to build time + index
 def build_kd_index(df: pd.DataFrame, feature_cols: list[str]) -> Tuple[KDTree, float]:
     feature_matrix = df[feature_cols].to_numpy()
     t0 = time.perf_counter()
@@ -188,10 +179,7 @@ def build_rtree_index(df: pd.DataFrame) -> Tuple[RTree, float]:
     return rtree, build_time
 
 
-# ============================================================
-# 4. Numeric filtering per index (μόνο numeric, χωρίς categories)
-# ============================================================
-
+#numeric filtering
 def numeric_candidates_kdtree(
     kd_tree: KDTree,
     df: pd.DataFrame,
@@ -268,10 +256,8 @@ def numeric_candidates_rtree(
     return candidates, query_time
 
 
-# ============================================================
-# 5. LSH helpers (σε genres)
-# ============================================================
-
+#LSH
+#exoun ginei allages
 def genres_to_token_set(genres: List[str]) -> Set[str]:
     return {str(g).strip().lower() for g in genres if str(g).strip()}
 
@@ -368,7 +354,7 @@ def run_lsh_on_df(
     df_local = df.reset_index(drop=True)
     lsh, docs, build_time = build_lsh_on_genres(df_local)
 
-    # Βρες μια ταινία με μη κενά genres για να κάνουμε 1 query
+    #vres mia tainia me mi kina g enres gia na kanoume 1 query
     query_idx = None
     for i, s in enumerate(docs):
         if len(s) > 0:
@@ -376,12 +362,12 @@ def run_lsh_on_df(
             break
 
     if query_idx is None:
-        # όλες οι ταινίες χωρίς genres -> LSH άχρηστο
+        #oles oi tainies xoris genres -> LSH axristo
         return build_time, 0.0
 
     query_set = docs[query_idx]
 
-    # Μετράμε μόνο χρόνο, δεν μας νοιάζουν τα αποτελέσματα εδώ
+    #metrame mono ton xrono edo
     t0 = time.perf_counter()
     _ = lsh.query(query_set)
     t1 = time.perf_counter()
@@ -430,10 +416,7 @@ def query_by_genre_name(
     return genre_index.df.iloc[idxs].copy()
 
 
-# ============================================================
-# 6. High-level helpers: prepare_data, evaluate_indexes, print_summaries
-# ============================================================
-
+#gia na fainontai ta dedomena
 def prepare_data() -> tuple[
     pd.DataFrame,
     pd.DataFrame,
@@ -475,7 +458,7 @@ def evaluate_indexes(
     summary_numeric: Dict[str, Dict[str, float | int]] = {}
     summary_schemes: Dict[str, Dict[str, float | int]] = {}
 
-    # KD-Tree
+    #KD TREE
     kd_feature_cols = ["release_year", "popularity", "vote_average", "runtime", "vote_count"]
     kd_tree, kd_build_time = build_kd_index(base_df, kd_feature_cols)
     kd_numeric_df, kd_numeric_time = numeric_candidates_kdtree(kd_tree, base_df, params, kd_feature_cols)
@@ -485,7 +468,7 @@ def evaluate_indexes(
         "numeric_candidates": len(kd_numeric_df),
     }
 
-    # Quad-Tree
+    #QUAD TREE
     quad_tree, quad_build_time = build_quad_index(base_df)
     quad_numeric_df, quad_numeric_time = numeric_candidates_quadtree(quad_tree, base_df, params)
     summary_numeric["Quad-Tree"] = {
@@ -494,7 +477,7 @@ def evaluate_indexes(
         "numeric_candidates": len(quad_numeric_df),
     }
 
-    # Range-Tree
+    #RANGE TREE
     year_tree, range_build_time = build_range_index(base_df)
     range_numeric_df, range_numeric_time = numeric_candidates_rangetree(year_tree, base_df, params)
     summary_numeric["Range-Tree"] = {
@@ -503,7 +486,7 @@ def evaluate_indexes(
         "numeric_candidates": len(range_numeric_df),
     }
 
-    # R-Tree
+    #R TREE
     rtree, rtree_build_time = build_rtree_index(base_df)
     rtree_numeric_df, rtree_numeric_time = numeric_candidates_rtree(rtree, base_df, params)
     summary_numeric["R-Tree"] = {
@@ -512,10 +495,10 @@ def evaluate_indexes(
         "numeric_candidates": len(rtree_numeric_df),
     }
 
-    # LSH πάνω στο ground truth για κοινό μέτρο
+    #lsh pano sto ground truth gia koino metro
     lsh_common_build, lsh_common_query = run_lsh_on_df(ground_truth_df, "COMMON", N=3)
 
-    # KD-Tree + LSH
+    #KD TREE + LSH
     kd_scheme_df = apply_full_query_filters(kd_numeric_df, params)
     kd_lsh_build, kd_lsh_query = run_lsh_on_df(kd_scheme_df, "KD-Tree + LSH", N=3)
     summary_schemes["KD-Tree + LSH"] = {
@@ -527,7 +510,7 @@ def evaluate_indexes(
         "lsh_query": kd_lsh_query,
     }
 
-    # Quad-Tree + LSH
+    #QUAD TREE + LSH
     quad_scheme_df = apply_full_query_filters(quad_numeric_df, params)
     quad_lsh_build, quad_lsh_query = run_lsh_on_df(quad_scheme_df, "Quad-Tree + LSH", N=3)
     summary_schemes["Quad-Tree + LSH"] = {
@@ -539,7 +522,7 @@ def evaluate_indexes(
         "lsh_query": quad_lsh_query,
     }
 
-    # Range-Tree + LSH
+    #RANGE TREE + LSH
     range_scheme_df = apply_full_query_filters(range_numeric_df, params)
     range_lsh_build, range_lsh_query = run_lsh_on_df(range_scheme_df, "Range-Tree + LSH", N=3)
     summary_schemes["Range-Tree + LSH"] = {
@@ -551,7 +534,7 @@ def evaluate_indexes(
         "lsh_query": range_lsh_query,
     }
 
-    # R-Tree + LSH
+    #R TREE + LSH
     rtree_scheme_df = apply_full_query_filters(rtree_numeric_df, params)
     rtree_lsh_build, rtree_lsh_query = run_lsh_on_df(rtree_scheme_df, "R-Tree + LSH", N=3)
     summary_schemes["R-Tree + LSH"] = {
@@ -605,25 +588,22 @@ def print_summaries(
     print(f"  Query time : {lsh_common_query:.6f} s")
 
 
-# ============================================================
-# 7. main() – όλα μαζί
-# ============================================================
-
+#i main
 def main():
-    # 1. Προετοιμασία δεδομένων + genres + global genre LSH
+    #proetoimasia data + genres + global genre LSH
     df_processed, base_df, ground_truth_df, params, all_genres, genre_index = prepare_data()
 
-    # 2. Αξιολόγηση δομών
+    #axiologisi domon
     summary_numeric, summary_schemes, lsh_common_build, lsh_common_query = evaluate_indexes(
         base_df,
         ground_truth_df,
         params,
     )
 
-    # 3. Εκτύπωση περιλήψεων
+    #print perilipseon
     print_summaries(summary_numeric, summary_schemes, lsh_common_build, lsh_common_query, len(ground_truth_df))
 
-    # 4. (Προαιρετικό demo) παράδειγμα search με ένα genre:
+    #search me ena genre (proairetiko)
     if all_genres:
         demo_genre = all_genres[0]
         print(f"\n[DEMO] Top-5 movies for genre: {demo_genre}")
@@ -636,3 +616,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
