@@ -53,15 +53,13 @@ class MovieQueryApp:
 
         self._build_layout()
 
-    # ------------------------------------------------------------------
-    # Layout (απλό)
-    # ------------------------------------------------------------------
+    #gia to layout
     def _build_layout(self):
-        # --------- Filters frame ----------
+        #filtra
         filters = ttk.LabelFrame(self.root, text="Filters")
         filters.pack(fill="x", padx=10, pady=5)
 
-        # Year
+        #year
         self.combo_year_min = self._labeled_combo(
             filters, "Year min:", 2000, row=0,
             values=[str(y) for y in range(1900, 2026)]
@@ -71,7 +69,7 @@ class MovieQueryApp:
             values=[str(y) for y in range(1900, 2026)]
         )
 
-        # Popularity
+        #popularity
         pop_vals = [f"{x/2:.1f}" for x in range(0, 41)]
         self.combo_pop_min = self._labeled_combo(
             filters, "Popularity min:", "8.0", row=1, values=pop_vals
@@ -80,7 +78,7 @@ class MovieQueryApp:
             filters, "Popularity max:", "12.0", row=1, col=2, values=pop_vals
         )
 
-        # Vote avg
+        #vote_avg
         vote_vals = [f"{x/2:.1f}" for x in range(0, 21)]
         self.combo_vote_min = self._labeled_combo(
             filters, "Vote min:", "3.0", row=2, values=vote_vals
@@ -89,7 +87,7 @@ class MovieQueryApp:
             filters, "Vote max:", "8.0", row=2, col=2, values=vote_vals
         )
 
-        # Runtime
+        #runtime
         run_vals = [str(x) for x in range(30, 241, 10)]
         self.combo_runtime_min = self._labeled_combo(
             filters, "Runtime min:", "30", row=3, values=run_vals
@@ -98,20 +96,20 @@ class MovieQueryApp:
             filters, "Runtime max:", "180", row=3, col=2, values=run_vals
         )
 
-        # Countries
+        #countries
         ttk.Label(filters, text="Countries:").grid(row=4, column=0, sticky="w")
         self.entry_countries = ttk.Entry(filters, width=18)
         self.entry_countries.insert(0, "US,GB")
         self.entry_countries.grid(row=4, column=1, padx=5, pady=2)
 
-        # Language
+        #language
         ttk.Label(filters, text="Language:").grid(row=4, column=2, sticky="w")
         self.combo_language = ttk.Combobox(filters, width=10, state="readonly",
                                            values=["en", "fr", "de", "es", "it", "ja"])
         self.combo_language.set("en")
         self.combo_language.grid(row=4, column=3, padx=5, pady=2)
 
-        # Buttons
+        #koumpia, to proto koumpi einai gia to testing
         ttk.Button(filters, text="Run eval_lsh.py", command=lambda: threading.Thread(target=self._run_eval, daemon=True).start()).grid(row=6, column=0, columnspan=4, pady=4)
 
         ttk.Button(filters, text="Run query (pandas only)",
@@ -119,7 +117,7 @@ class MovieQueryApp:
         ttk.Button(filters, text="Run index + LSH performance",
                    command=self.run_index_performance).grid(row=5, column=2, columnspan=2, pady=8)
 
-        # --------- Tree-based LSH search frame ----------
+        #lsh search me dentro
         tree_lsh = ttk.LabelFrame(self.root, text="Tree-based LSH search (results shown in table)")
         tree_lsh.pack(fill="x", padx=10, pady=5)
 
@@ -141,13 +139,13 @@ class MovieQueryApp:
         ttk.Button(tree_lsh, text="Run Tree + LSH search",
                    command=self.run_tree_lsh).grid(row=2, column=0, columnspan=4, pady=6)
 
-        # --------- Status ----------
+        #status
         status_frame = ttk.Frame(self.root)
         status_frame.pack(fill="x", padx=10, pady=3)
         ttk.Label(status_frame, textvariable=self.status_var).pack(side="left")
         ttk.Label(status_frame, textvariable=self.lsh_common_var).pack(side="right")
 
-        # --------- Results table ----------
+        #ta results
         results = ttk.LabelFrame(self.root, text="Movies")
         results.pack(fill="both", expand=True, padx=10, pady=5)
 
@@ -159,7 +157,7 @@ class MovieQueryApp:
             self.tree_results.column(c, width=width, anchor="w")
         self.tree_results.pack(fill="both", expand=True)
 
-        # --------- Numeric performance table ----------
+        #to performance
         perf_num = ttk.LabelFrame(self.root, text="Numeric index performance")
         perf_num.pack(fill="x", padx=10, pady=5)
 
@@ -170,7 +168,7 @@ class MovieQueryApp:
             self.tree_perf_numeric.column(c, width=100, anchor="center")
         self.tree_perf_numeric.pack(fill="x", expand=False)
 
-        # --------- Scheme performance table ----------
+        #gia to scheme performance
         perf_scheme = ttk.LabelFrame(self.root, text="Schemes: (Index + LSH)")
         perf_scheme.pack(fill="x", padx=10, pady=5)
 
@@ -181,9 +179,7 @@ class MovieQueryApp:
             self.tree_perf_scheme.column(c, width=110, anchor="center")
         self.tree_perf_scheme.pack(fill="x", expand=False)
 
-    # ------------------------------------------------------------------
-    # Helper για label + combobox
-    # ------------------------------------------------------------------
+    #gia label helper
     def _labeled_combo(self, parent, label, default, row, col=0, values=()):
         ttk.Label(parent, text=label).grid(row=row, column=col, sticky="w", padx=2, pady=2)
         cb = ttk.Combobox(parent, width=10, state="readonly", values=values)
@@ -191,9 +187,7 @@ class MovieQueryApp:
         cb.grid(row=row, column=col + 1, padx=2, pady=2)
         return cb
 
-    # ------------------------------------------------------------------
-    # Data loading
-    # ------------------------------------------------------------------
+    #fortosi dedomenon
     def ensure_base_df_loaded(self):
         if self.base_df is not None:
             return
@@ -209,9 +203,7 @@ class MovieQueryApp:
             self.status_var.set("Error loading data.")
             self.base_df = None
 
-    # ------------------------------------------------------------------
-    # Read & validate parameters
-    # ------------------------------------------------------------------
+    #diavasma parametron
     def get_params_from_ui(self) -> AssignmentQueryParams | None:
         try:
             year_min = int(self.combo_year_min.get())
@@ -226,7 +218,7 @@ class MovieQueryApp:
             messagebox.showerror("Error", "Invalid numeric values in filters.")
             return None
 
-        # Validation min <= max
+        #Validation min <= max
         if year_max < year_min:
             messagebox.showerror("Error", "Year max must be >= Year min.")
             return None
@@ -261,9 +253,7 @@ class MovieQueryApp:
             language=language,
         )
     
-    # ------------------------------------------------------------------
-    # Query (μόνο pandas, για να βλέπουμε αποτελέσματα και genres)
-    # ------------------------------------------------------------------
+    #gia na vlepoume ta results meso tou pandas
     def run_query(self):
         self.ensure_base_df_loaded()
         if self.base_df is None:
@@ -290,9 +280,7 @@ class MovieQueryApp:
         else:
             self.combo_genre.set("")
 
-    # ------------------------------------------------------------------
-    # Tree-based LSH search (ο χρήστης βλέπει top-N αποτελέσματα)
-    # ------------------------------------------------------------------
+    #tree based lsh
     def run_tree_lsh(self):
         self.ensure_base_df_loaded()
         if self.base_df is None:
@@ -317,7 +305,7 @@ class MovieQueryApp:
         self.status_var.set(f"Running Tree + LSH search using {index_type} ...")
         self.root.update_idletasks()
 
-        # 1. Numeric filtering ανά index
+        #Numeric filtering ana index
         if index_type == "KD-Tree":
             features = ["release_year", "popularity", "vote_average", "runtime", "vote_count"]
             kd_tree, _ = build_kd_index(self.base_df, features)
@@ -338,7 +326,7 @@ class MovieQueryApp:
             messagebox.showerror("Error", "Unknown index type.")
             return
 
-        # 2. Category filtering
+        #Category filtering
         final_df = apply_full_query_filters(numeric_df, params)
 
         if final_df.empty:
@@ -346,7 +334,7 @@ class MovieQueryApp:
             self.update_movies_table(final_df)
             return
 
-        # 3. Build LSH πάνω στο subset
+        #to lsh pano sto subset
         genre_index = build_genre_lsh_index(final_df)
 
         # 4. LSH query
@@ -357,9 +345,7 @@ class MovieQueryApp:
             f"Tree + LSH search done ({index_type}), Genre='{genre}', returned {len(result_df)} movies."
         )
 
-    # ------------------------------------------------------------------
-    # Index + LSH performance (2 πίνακες)
-    # ------------------------------------------------------------------
+    #index me lsh
     def run_index_performance(self):
         self.ensure_base_df_loaded()
         if self.base_df is None:
@@ -372,16 +358,15 @@ class MovieQueryApp:
         self.status_var.set("Running index + LSH performance...")
         self.root.update_idletasks()
 
-        # ground truth = πλήρες αποτέλεσμα με pandas
+        #full apotelesma me pandas
         ground_truth_df = apply_full_query_filters(self.base_df, params)
         self.last_ground_truth_df = ground_truth_df
 
-        # Χρησιμοποιούμε την evaluate_indexes από το main.py
         summary_numeric, summary_schemes, lsh_common_build, lsh_common_query = evaluate_indexes(
             self.base_df, ground_truth_df, params
         )
 
-        # Ενημέρωση πινάκων
+        #update ton values
         self.update_numeric_perf_table(summary_numeric)
         self.update_scheme_perf_table(summary_schemes)
 
@@ -392,9 +377,7 @@ class MovieQueryApp:
 
         self.status_var.set("Index + LSH performance done.")
 
-    # ------------------------------------------------------------------
-    # Table helpers
-    # ------------------------------------------------------------------
+    #update ta tables
     def update_movies_table(self, df: pd.DataFrame):
         for row in self.tree_results.get_children():
             self.tree_results.delete(row)
@@ -461,3 +444,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
