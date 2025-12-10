@@ -11,17 +11,16 @@ class QuadNode:
 
     x: float
     y: float
-    index: int                    # index του σημείου στον πίνακα points
-    bounds: Bounds                # ορθογώνιο κουτί που καλύπτει αυτό το node
-    capacity: int = 1             # μέγιστος αριθμός points πριν γίνει subdivision
-    points: Optional[List[int]] = None  # λίστα από indices σημείων (αν leaf)
+    index: int                    #index tou simeiou ston pinaka points
+    bounds: Bounds                #orthogonio kouti pou kaliptei auto to node
+    capacity: int = 1             #megistos arithmos points prin ginei to subdivision
+    points: Optional[List[int]] = None  #lista apo indexes
     nw: Optional["QuadNode"] = None
     ne: Optional["QuadNode"] = None
     sw: Optional["QuadNode"] = None
     se: Optional["QuadNode"] = None
 
     def __post_init__(self):
-        # Αρχικοποιούμε τη λίστα points με το index του πρώτου σημείου
         self.points = [self.index]
 
     def is_leaf(self) -> bool:
@@ -53,7 +52,7 @@ class QuadTree:
             ys = [p[1] for p in points]
             xmin, xmax = float(min(xs)), float(max(xs))
             ymin, ymax = float(min(ys)), float(max(ys))
-            # Προσθέτουμε λίγο "margin" για να μην έχουμε degenerate bounds
+            #prosthetoume ligo margin gia na min exoume degenerate bounds
             dx = xmax - xmin or 1.0
             dy = ymax - ymin or 1.0
             bounds = (xmin - 0.01 * dx, ymin - 0.01 * dy, xmax + 0.01 * dx, ymax + 0.01 * dy)
@@ -61,7 +60,7 @@ class QuadTree:
         self.root_bounds = bounds
         self.root: Optional[QuadNode] = None
 
-        # Εισάγουμε όλα τα σημεία ένα-ένα
+        #insertions ton stoixeion
         for idx, p in enumerate(points):
             self.insert(idx, p[0], p[1])
 
@@ -81,13 +80,13 @@ class QuadTree:
             return
 
         if node.is_leaf():
-            # Πρέπει να γίνει subdivision πριν εισάγουμε νέο point
+            #subdivision prin kanoume insert allo point
             self._subdivide(node)
 
-        # Βρίσκουμε σε ποιο child ανήκει το point
+        #se poio child anikei to point
         child = self._choose_child(node, x, y)
         if child is None:
-            # Αν για κάποιο λόγο δεν βρίσκεται (αριθμητικά σφάλματα), το βάζουμε εδώ
+            #ean den iparxei tote to vazoume edo
             node.points.append(index)
         else:
             self._insert_node(child, index, x, y)
@@ -98,7 +97,7 @@ class QuadTree:
         xmid = (xmin + xmax) / 2.0
         ymid = (ymin + ymax) / 2.0
 
-        # Δημιουργία παιδιών με τα κατάλληλα bounds
+        #dimiourgia children me ta katallila bounds
         node.nw = QuadNode(x=node.x, y=node.y, index=node.points[0],
                            bounds=(xmin, ymid, xmid, ymax), capacity=self.capacity)
         node.ne = QuadNode(x=node.x, y=node.y, index=node.points[0],
@@ -108,15 +107,15 @@ class QuadTree:
         node.se = QuadNode(x=node.x, y=node.y, index=node.points[0],
                            bounds=(xmid, ymin, xmax, ymid), capacity=self.capacity)
 
-         # ΝΕΟ: καθαρίζουμε τα points των παιδιών, θα τα ξαναμοιράσουμε
+         #katharizoume ta points ton children
         node.nw.points = []
         node.ne.points = []
         node.sw.points = []
         node.se.points = []
 
-        # Αναδιανομή των ήδη αποθηκευμένων points του node
+        #anadianomi ton points tou node
         old_points = node.points
-        node.points = []  # καθαρίζουμε τα points από τον parent
+        node.points = []  #katharizoume ta points apo ton parent
 
         for idx in old_points:
             px, py = self.points[idx]
@@ -124,7 +123,8 @@ class QuadTree:
             if child is not None:
                 child.points.append(idx)
             else:
-                # Αν δεν βρέθηκε child (σπάνια), το αφήνουμε στον parent (degraded)
+                #an den vrethike child tote to afinoume ston parent
+                #genika einai spanio na simvei auto
                 node.points.append(idx)
 
     def _choose_child(self, node: QuadNode, x: float, y: float) -> Optional[QuadNode]:
@@ -140,13 +140,11 @@ class QuadTree:
             else:
                 return node.ne
         else:
-            # κάτω μέρος
+            #kato meros
             if x < xmid:
                 return node.sw
             else:
                 return node.se
-
-    # ---------- RANGE QUERY ----------
 
     def range_query(self, rect: Bounds) -> List[int]:
         """
@@ -176,18 +174,19 @@ class QuadTree:
         if node is None:
             return
 
-        # Αν το rect δεν τέμνει το node.bounds, αγνοούμε αυτό το υποδέντρο
+        #an to rect den temnei to node.bounds tote kanoume ignore to subtree
         if not self._rect_intersects(node.bounds, rect):
             return
 
-        # Ελέγχουμε τα points σε αυτό το node (αν leaf ή αν έχει points)
+        #elegxoume ta points se auto to node (ean einai leaf i exei points)
         if node.points:
             for idx in node.points:
                 px, py = self.points[idx]
                 if self._rect_contains_point(rect, px, py):
                     results.append(idx)
 
-        # Συνεχίζουμε στα παιδιά
+        #sinexizoume sta children
         for child in (node.nw, node.ne, node.sw, node.se):
             if child is not None:
                 self._range_query_node(child, rect, results)
+
