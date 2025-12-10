@@ -1,12 +1,12 @@
 from main import load_dataset, preprocess_dataset, build_base_pool
 
 def main():
-    # 1. Φόρτωμα + preprocess + base pool (όπως στο main)
+    #fortosi + preprocess (opos tin main)
     df_raw = load_dataset()
     df_proc = preprocess_dataset(df_raw)
     base_df = build_base_pool(df_proc)
 
-    # 2. Συλλογή όλων των χωρών από origin_country_parsed
+    #apothikeuoume oles tis xores
     all_countries = set()
 
     if "origin_country_parsed" not in base_df.columns:
@@ -28,3 +28,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
