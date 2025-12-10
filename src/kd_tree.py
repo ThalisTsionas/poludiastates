@@ -7,9 +7,9 @@ from typing import List, Optional, Sequence
 class KDNode:
     """Κόμβος ενός k-d tree."""
 
-    point: Sequence[float]          # το σημείο στον k-διάστατο χώρο
-    index: int                      # index του σημείου στο αρχικό array
-    axis: int                       # ποιος άξονας (dimension) χρησιμοποιείται για το split
+    point: Sequence[float]          #to simeio ston k-diastato xoro
+    index: int                      #index tou simeiou sto arxiko array
+    axis: int                       #poio dimension xrismipoiitai gia to split
     left: Optional["KDNode"] = None
     right: Optional["KDNode"] = None
 
@@ -44,22 +44,22 @@ class KDTree:
 
         axis = depth % self.k
 
-        # Ταξινόμηση των indices με βάση την τιμή στον συγκεκριμένο άξονα
+        #taxinomisi ton indexes me vasi tin timi tou axona
         indices.sort(key=lambda i: self._points[i][axis])
 
-        # Επιλογή median για ισορροπημένο δέντρο
+        #epilogi median gia isorropimeno dentro
         median_pos = len(indices) // 2
         median_index = indices[median_pos]
         median_point = self._points[median_index]
 
-        # Δημιουργία κόμβου
+        #node creation
         node = KDNode(
             point=median_point,
             index=median_index,
             axis=axis,
         )
 
-        # Αναδρομικά φτιάχνουμε τα υποδέντρα
+        #ftiaxnoume anadromika ta ipodentra
         left_indices = indices[:median_pos]
         right_indices = indices[median_pos + 1 :]
 
@@ -75,8 +75,7 @@ class KDTree:
     def __len__(self) -> int:
         """Επιστρέφει πόσα σημεία περιέχει το δέντρο."""
         return self.n_points
-
-    # ---------- RANGE QUERY ----------
+    #gia to range
 
     def range_query(
         self,
@@ -113,7 +112,7 @@ class KDTree:
         point = node.point
         axis = node.axis
 
-        # Ελέγχουμε αν το σημείο είναι μέσα στο range σε ΟΛΕΣ τις διαστάσεις
+        #checkaroume ean to simeio einai mesa sto range se OLA TA DIMENSIONS
         inside = True
         for dim in range(self.k):
             if point[dim] < lower_bounds[dim] or point[dim] > upper_bounds[dim]:
@@ -123,10 +122,11 @@ class KDTree:
         if inside:
             results.append(node.index)
 
-        # Αριστερό υποδέντρο;
+        #aristero ipodentro
         if node.left is not None and lower_bounds[axis] <= point[axis]:
             self._range_query(node.left, lower_bounds, upper_bounds, results)
 
-        # Δεξί υποδέντρο;
+        #dexio ipodentro
         if node.right is not None and upper_bounds[axis] >= point[axis]:
             self._range_query(node.right, lower_bounds, upper_bounds, results)
+
